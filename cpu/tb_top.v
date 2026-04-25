@@ -53,7 +53,9 @@ module tb_top;
 
     // Safety timeout — override per test as needed
     localparam MAX_CYCLES = 10_000;
-    integer cycle_count = 0;
+    integer cycle_count;
+
+    initial cycle_count = 0;
 
     always @(posedge clk) begin
         cycle_count <= cycle_count + 1;
@@ -71,12 +73,12 @@ module tb_top;
     // -------------------------------------------------------------------------
     always @(posedge clk) begin
         if (u_cpu.u_dmem.mem_write &&
-            u_cpu.u_ex_mem.mem_alu_result_fwd == 32'hFFFF_0000) begin
-            if (u_cpu.u_ex_mem.mem_rs2_data == 32'd1)
+            u_cpu.u_dmem.addr == 32'hFFFF_0000) begin
+            if (u_cpu.u_dmem.wr_data == 32'd1)
                 $display("PASS at cycle %0d", cycle_count);
             else
                 $display("FAIL at cycle %0d (result=0x%08h)",
-                         cycle_count, u_cpu.u_ex_mem.mem_rs2_data);
+                         cycle_count, u_cpu.u_dmem.wr_data);
             $finish;
         end
     end
