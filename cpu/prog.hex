@@ -1,0 +1,76 @@
+// Simple RV32I Test Program
+// Tests: ADDI, ADD, SW, LW, LUI, BEQ, JAL, JALR
+// At the end: write 1 to 0xFFFF_0000 to signal PASS
+
+// 0x0000: ADDI x1, x0, 1         # x1 = 1   (PASS sentinel)
+00100093
+// 0x0004: ADDI x2, x0, 5         # x2 = 5
+00500113
+// 0x0008: ADDI x3, x0, 3         # x3 = 3
+00300193
+// 0x000C: ADD x4, x2, x3         # x4 = 8
+00310233
+// 0x0010: SUB x5, x2, x3         # x5 = 2
+403102B3
+// 0x0014: AND x6, x2, x3         # x6 = 1 (5 & 3)
+00310333
+// 0x0018: OR x7, x2, x3          # x7 = 7 (5 | 3)
+003103B3
+// 0x001C: XOR x8, x2, x3         # x8 = 6 (5 ^ 3)
+00310433
+// 0x0020: SLL x9, x3, x2         # x9 = 96 (3 << 5)
+005194B3
+// 0x0024: SRL x10, x9, x3        # x10 = 12 (96 >> 3)
+00395533
+// 0x0028: SLT x11, x3, x2        # x11 = 1 (3 < 5)
+0021A5B3
+// 0x002C: SLTU x12, x4, x3       # x12 = 0 (8 < 3 unsigned? no)
+00343633
+// 0x0030: LUI x13, 0x12345       # x13 = 0x12345000
+123456B7
+// 0x0034: ADDI x13, x13, 0x678   # x13 = 0x12345678
+67868693
+// 0x0038: AUIPC x14, 0           # x14 = PC + 0 = 0x38
+00000717
+// 0x003C: ADDI x15, x0, 0x100    # x15 = 256 (base addr for store)
+10000793
+// 0x0040: SW x13, 0(x15)         # mem[256] = x13
+00D7A023
+// 0x0044: LW x16, 0(x15)         # x16 = mem[256] = x13
+0007A803
+// 0x0048: SUB x30, x16, x13      # x30 should be 0 (verify load)
+00D80FB3
+// 0x004C: BNE x30, x0, FAIL      # if x30 != 0, jump to fail
+000F9863
+// 0x0050: BEQ x30, x0, skip      # x30 should be 0, so taken
+000F8263
+// 0x0054: ADDI x31, x0, 0        # should be skipped
+00000F93
+// 0x0058: (skip target)
+// 0x0058: ADDI x17, x0, 0xABC    # x17 = 0xABC
+ABC00893
+// 0x005C: JAL x18, func           # call function
+00800FEF
+// 0x0060: ADDI x19, x0, 0x20      # x19 = 32 (return here)
+02000993
+// 0x0064: BEQ x0, x0, done        # unconditional jump to done
+00000863
+// 0x0068: (func: address 0x68)
+// 0x0068: ADD x17, x17, x17       # x17 = 2 * 0xABC = 0x1578
+011188B3
+// 0x006C: JALR x0, 0(x18)         # return (x18 = pc + 4 from JAL)
+00090067
+// 0x0070: (done: address)
+// 0x0070: LUI x20, 0xFFFF0       # x20 = 0xFFFF0000
+FFFF0A37
+// 0x0074: SW x1, 0(x20)           # mem[0xFFFF0000] = 1 → PASS
+00122023
+// 0x0078: EBREAK                    # halt simulation
+00100073
+// 0x007C: (FAIL: address)
+// 0x007C: LUI x20, 0xFFFF0       # x20 = 0xFFFF0000
+FFFF0A37
+// 0x0080: SW x0, 0(x20)           # mem[0xFFFF0000] = 0 → FAIL
+00022023
+// 0x0084: EBREAK
+00100073
